@@ -1,5 +1,6 @@
 package com.finance.tracker.config;
 
+import com.finance.tracker.service.CustomOAuth2UserService;
 import jakarta.servlet.annotation.WebFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,13 @@ import java.util.List;
 @WebFilter
 public class SecurityConfig {
 
+    private final CustomOAuth2UserService customOAuth2UserService;
+
+
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService) {
+        this.customOAuth2UserService = customOAuth2UserService;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -25,7 +33,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                        .defaultSuccessUrl("/api/auth/success", true)
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+
                 );
 
         return http.build();
