@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -26,37 +28,43 @@ public class TransactionController {
 
     private final TransactionService transactionService;
     private final UserRepository userRepository;
-    private final UserUtil userUtil;
+
 
     public TransactionController(TransactionService transactionService,
-                                 UserRepository userRepository, UserUtil userUtil) {
+                                 UserRepository userRepository) {
         this.transactionService = transactionService;
         this.userRepository = userRepository;
-        this.userUtil = userUtil;
+
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> addTransaction(@RequestBody Transaction tx, Principal principal) {
-        User user = userUtil.getUser(principal, userRepository);
+    public ResponseEntity<Transaction> addTransaction(@RequestBody Transaction tx, @AuthenticationPrincipal OAuth2User principal) {
+        String email = principal.getAttribute("email");
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found"));
         return ResponseEntity.ok(transactionService.addTransaction(user, tx));
     }
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> getTransactions(Principal principal) {
-        User user = userUtil.getUser(principal, userRepository);
+    public ResponseEntity<List<Transaction>> getTransactions(@AuthenticationPrincipal OAuth2User principal) {
+        String email = principal.getAttribute("email");
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found"));
         return ResponseEntity.ok(transactionService.getUserTransactions(user.getId()));
     }
 
     @DeleteMapping("/{txId}")
-    public ResponseEntity<String> deleteTransaction(@PathVariable UUID txId, Principal principal) {
-        String email = principal.getName();
+    public ResponseEntity<String> deleteTransaction(@PathVariable UUID txId, @AuthenticationPrincipal OAuth2User principal) {
+        String email = principal.getAttribute("email");
         transactionService.deleteTransaction(txId, email);
         return ResponseEntity.ok("Transaction deleted");
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<Map<String, Double>> getSummary(Principal principal) {
-        User user = userUtil.getUser(principal, userRepository);
+    public ResponseEntity<Map<String, Double>> getSummary(@AuthenticationPrincipal OAuth2User principal) {
+        String email = principal.getAttribute("email");
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found"));
         return ResponseEntity.ok(transactionService.getTransactionSummary(user));
     }
 
@@ -64,15 +72,19 @@ public class TransactionController {
     public ResponseEntity<List<Transaction>> getFiltered(
             @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-            Principal principal
+            @AuthenticationPrincipal OAuth2User principal
             ) {
-        User user = userUtil.getUser(principal, userRepository);
+        String email = principal.getAttribute("email");
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found"));
         return ResponseEntity.ok(transactionService.getUserTransactions(user.getId(), from, to));
     }
 
     @GetMapping("/export")
-    public void exportCSV(HttpServletResponse response, Principal principal) throws IOException {
-        User user = userUtil.getUser(principal, userRepository);
+    public void exportCSV(HttpServletResponse response, @AuthenticationPrincipal OAuth2User principal) throws IOException {
+        String email = principal.getAttribute("email");
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new RuntimeException("User not found"));
         List<Transaction> txs = transactionService.getUserTransactions(user.getId());
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=\"transactions.csv\"");
