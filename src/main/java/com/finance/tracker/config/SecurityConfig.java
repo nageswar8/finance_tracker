@@ -35,7 +35,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/auth/**", "/api/transactions/**").permitAll() // Allow transactions
+                        .requestMatchers("/", "/api/auth/**", "/api/transactions/**",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Allow transactions
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -44,6 +45,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -56,4 +58,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config); // Apply CORS to all endpoints
         return source;
     }
+
+
 }
