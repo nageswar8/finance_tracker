@@ -2,6 +2,7 @@ package com.finance.tracker.controller;
 
 import com.finance.tracker.entity.User;
 import com.finance.tracker.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ public class AuthController {
 
     }
 
+    @Operation(summary = "Get current user", description = "Returns the currently logged-in user's details.")
     @GetMapping("/api/me")
     public ResponseEntity<User> getCurrentUser(OAuth2AuthenticationToken auth) {
         String email = auth.getPrincipal().getAttribute("email");
