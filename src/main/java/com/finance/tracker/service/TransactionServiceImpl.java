@@ -2,6 +2,7 @@ package com.finance.tracker.service;
 
 import com.finance.tracker.entity.Transaction;
 import com.finance.tracker.entity.User;
+import com.finance.tracker.mapper.TransactionMapper;
 import com.finance.tracker.repository.TransactionRepository;
 import com.finance.tracker.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -19,17 +20,20 @@ public class TransactionServiceImpl implements TransactionService{
 
     private final UserRepository userRepo;
 
+    private final TransactionMapper transactionMapper;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepo, UserRepository userRepo) {
+
+    public TransactionServiceImpl(TransactionRepository transactionRepo, UserRepository userRepo, TransactionMapper transactionMapper) {
         this.transactionRepo = transactionRepo;
         this.userRepo = userRepo;
+        this.transactionMapper = transactionMapper;
     }
 
     @Override
     public Transaction addTransaction(User user, Transaction transaction) {
 
         transaction.setUser(user);
-        return  transactionRepo.save(transaction);
+        return transactionRepo.save(transaction);
     }
 
     @Override
