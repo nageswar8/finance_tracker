@@ -1,2 +1,8 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+# Ignore sensitive config files
+.env
+*.yml
+!application.yml     # if you want to keep base config public
+application-dev.yml
+application-prod.yml
